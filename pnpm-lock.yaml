@@ -26,9 +26,9 @@ importers:
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
-      expres:
-        specifier: ^0.0.5
-        version: 0.0.5
+      express:
+        specifier: ^5.1.0
+        version: 5.1.0
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -319,9 +319,6 @@ packages:
   etag@1.8.1:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
-
-  expres@0.0.5:
-    resolution: {integrity: sha512-pK2yFc2Ke66rveH6iq6YJr63v55cFP6fs2xhoJ7RUGg+uwwApMlod3IwVm8zEtKH4ALqSvaGQF4cNemsyApd/w==}
 
   express@5.1.0:
     resolution: {integrity: sha512-DT9ck5YIRU+8GYzzU5kT3eHGA5iL+1Zd0EutOmTE9Dtk+Tvuzd23VBU+ec7HPNSTxXYO55gPV/hq4pSBJDjFpA==}
@@ -1249,8 +1246,6 @@ snapshots:
   escape-string-regexp@1.0.5: {}
 
   etag@1.8.1: {}
-
-  expres@0.0.5: {}
 
   express@5.1.0:
     dependencies:
