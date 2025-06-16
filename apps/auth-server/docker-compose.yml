@@ -1,0 +1,33 @@
+# docker-compose.yml
+
+version: '3.8' # Composeファイルのバージョンを指定
+
+services:
+  # データベースサービスの定義
+  db:
+    # 使用するDockerイメージを指定 (バージョンを固定することを推奨)
+    image: postgres:15
+
+    # コンテナを再起動するポリシー (常に再起動)
+    restart: always
+
+    # コンテナ内で使用する環境変数 (.envファイルから読み込む)
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    # ポートのマッピング (ホストOSのポート:コンテナのポート)
+    ports:
+      - "${DB_PORT}:5432"
+
+    # データの永続化設定
+    volumes:
+      # 名前付きボリューム 'postgres-data' をコンテナ内のデータディレクトリにマウント
+      # これによりコンテナを削除してもデータが保持される
+      - postgres-data:/var/lib/postgresql/data
+
+# トップレベルでボリュームを定義
+volumes:
+  postgres-data:
+    driver: local # Dockerのローカルボリュームドライバを使用
