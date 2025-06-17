@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    /* ----- Strictness & Code Quality ----- */
+    "strict": true, // すべての厳格な型チェックオプションを有効化 (強く推奨)
+    "forceConsistentCasingInFileNames": true, // ファイル名の大文字・小文字を区別する
+    "noFallthroughCasesInSwitch": true, // switch文でcaseのフォールスルーを許可しない
+    "noUnusedLocals": true, // 使われていないローカル変数をエラーにする
+    "noUnusedParameters": true, // 使われていない引数をエラーにする
+    /* ----- JS & Library Support ----- */
+    "esModuleInterop": true, // CommonJSとES Modules間の相互運用性を向上させる (必須級)
+    "allowSyntheticDefaultImports": true, // デフォルトエクスポートがないモジュールからのデフォルトインポートを許可
+    "resolveJsonModule": true, // .jsonファイルのインポートを許可
+    /* ----- Debugging & Build ----- */
+    "sourceMap": true, // デバッグ用にソースマップファイル(.js.map)を生成
+    "declaration": true, // 型定義ファイル(.d.ts)を生成 (パッケージ間で共有する場合に便利)
+    "skipLibCheck": true // 依存関係にあるライブラリの型チェックをスキップし、コンパイルを高速化
+  }
+}

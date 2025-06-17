@@ -1,7 +1,14 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "es2021",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-  }
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*.ts" // ← src 以下の .ts ファイルが対象になっているか
+  ],
+  "exclude": [
+    "node_modules", // ← node_modulesが除外されているか
+    "dist"
+  ]
 }
