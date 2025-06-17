@@ -19,5 +19,5 @@ app.get("/health", (req, res) => {
 
 // サーバーを起動
 app.listen(PORT, () => {
-  console.log(`Auth Server is running on port ${PORT}`);
+  console.log(`Auth Server is running at http://localhost:${PORT}`);
 });
