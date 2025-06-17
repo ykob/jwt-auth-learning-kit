@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "dev": "nodemon --exec \"node --loader ts-node/esm\" src/index.ts"
+    "dev": "nodemon src/index.ts"
   },
   "author": "",
   "license": "ISC",
