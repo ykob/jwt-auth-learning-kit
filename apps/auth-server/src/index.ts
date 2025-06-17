@@ -20,7 +20,7 @@ app.get("/health", (_, res) => {
 });
 
 // ユーザー登録エンドポイント
-app.post("/register", async (req, res) => {
+app.post("/register", async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -52,8 +52,8 @@ app.post("/register", async (req, res) => {
     const { password: _, ...userWithoutPassword } = user;
     res.status(201).json(userWithoutPassword);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    // 予期せぬ例外をエラーハンドリングミドルウェアに渡す
+    next(error);
   }
 });
 
