@@ -6,7 +6,7 @@ import { prisma } from "../prisma"; // prismaのインポートパスを修正
 
 const router: Router = Router();
 
-// ユーザー登録エンドポイント
+// ユーザー登録
 router.post("/register", async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -44,6 +44,7 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
+// ログイン
 router.post("/login", async (req, res, next) => {
   try {
     // 1. リクエストボディからemailとpasswordを取得
@@ -98,6 +99,59 @@ router.post("/login", async (req, res, next) => {
     // アクセストークンをJSONレスポンスで返す
     res.status(200).json({ accessToken });
   } catch (error) {
+    // 予期せぬ例外をエラーハンドリングミドルウェアに渡す
+    next(error);
+  }
+});
+
+// トークンの再発行
+router.post("/token", async (req, res, next) => {
+  // 1. リクエストのCookieからリフレッシュトークンを取得
+  const { refreshToken } = req.cookies;
+
+  // 2. リフレッシュトークンが存在しない場合は認証エラー
+  if (!refreshToken) {
+    res
+      .status(401)
+      .json({ message: "Authorization denied. No refresh token." });
+    return;
+  }
+
+  try {
+    // 3. リフレッシュトークンを検証
+    // jwt.verifyは、トークンが不正または期限切れの場合にエラーをthrowします
+    const payload = jwt.verify(refreshToken, env.JWT_SECRET) as {
+      userId: string;
+    };
+
+    // 4. ペイロードのuserIdを元にユーザーを検索
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) {
+      res
+        .status(401)
+        .json({ message: "Authorization denied. User not found." });
+      return;
+    }
+
+    // ここで、DBに保存したリフレッシュトークンと比較して、失効済みでないかチェックするロジックを追加することも可能です（よりセキュア）
+
+    // 5. 新しいアクセストークンを生成
+    const newAccessToken = jwt.sign(
+      { userId: user.id, role: user.role },
+      env.JWT_SECRET,
+      { expiresIn: env.ACCESS_TOKEN_EXPIRES_IN }
+    );
+
+    // 6. 新しいアクセストークンをクライアントに返す
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    // jwt.verifyがエラーを投げた場合 (トークンが不正、期限切れなど)
+    // クライアント側に残っている無効なCookieをクリアする
+    res.clearCookie("refreshToken");
+    // エラーハンドリングミドルウェアにエラーを渡す
     next(error);
   }
 });
