@@ -23,7 +23,7 @@ app.use("/api/auth", authRouter);
 
 // --- 中央エラーハンドリングミドルウェア ---
 // Expressでは、4つの引数を持つミドルウェアはエラーハンドラとして扱われる
-app.use((req, res, next) => {
+app.use((req, res, _) => {
   // 開発中はエラーの詳細をコンソールに出力するとデバッグしやすい
   console.error(req);
 
