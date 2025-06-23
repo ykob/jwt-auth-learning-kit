@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { createHash } from "crypto";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../config"; // configのインポートパスを修正
@@ -86,7 +87,17 @@ router.post("/login", async (req, res, next) => {
       env.JWT_SECRET!, // ※ 本来は別の秘密鍵を使うのがよりセキュア
       { expiresIn: env.REFRESH_TOKEN_EXPIRES_IN }
     );
-    // TODO: リフレッシュトークンをDBに保存する処理も後で追加
+
+    // リフレッシュトークンをハッシュ化
+    const hashedToken = createHash("sha256").update(refreshToken).digest("hex");
+
+    // ハッシュ化したトークンをDBに保存
+    await prisma.refreshToken.create({
+      data: {
+        hashedToken: hashedToken,
+        userId: user.id,
+      },
+    });
 
     // 5. トークンをクライアントに返す
     // リフレッシュトークンをHttpOnly Cookieにセット
@@ -106,25 +117,44 @@ router.post("/login", async (req, res, next) => {
 
 // トークンの再発行
 router.post("/token", async (req, res, next) => {
-  // 1. リクエストのCookieからリフレッシュトークンを取得
-  const { refreshToken } = req.cookies;
-
-  // 2. リフレッシュトークンが存在しない場合は認証エラー
-  if (!refreshToken) {
-    res
-      .status(401)
-      .json({ message: "Authorization denied. No refresh token." });
-    return;
-  }
-
   try {
-    // 3. リフレッシュトークンを検証
+    // 1. リクエストのCookieからリフレッシュトークンを取得
+    const { refreshToken } = req.cookies;
+
+    // 2. リフレッシュトークンが存在しない場合は認証エラー
+    if (!refreshToken) {
+      res
+        .status(401)
+        .json({ message: "Authorization denied. No refresh token." });
+      return;
+    }
+
+    // 3. 受け取ったリフレッシュトークンをハッシュ化してDB検索に使う
+    const hashedToken = createHash("sha256").update(refreshToken).digest("hex");
+
+    // 4. DBでハッシュ化されたトークンを検索（失効済みでないかもチェック）
+    const dbToken = await prisma.refreshToken.findUnique({
+      where: { hashedToken: hashedToken, revoked: false },
+    });
+
+    if (!dbToken) {
+      throw new Error("Refresh token not found in DB or revoked.");
+    }
+
+    // 5. 古いトークンをrevoked=trueに更新
+    // これがローテーションの核。一度使ったトークンは無効化する。
+    await prisma.refreshToken.update({
+      where: { id: dbToken.id },
+      data: { revoked: true },
+    });
+
+    // 6. リフレッシュトークンを検証
     // jwt.verifyは、トークンが不正または期限切れの場合にエラーをthrowします
     const payload = jwt.verify(refreshToken, env.JWT_SECRET) as {
       userId: string;
     };
 
-    // 4. ペイロードのuserIdを元にユーザーを検索
+    // 7. ペイロードのuserIdを元にユーザーを検索
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
     });
@@ -136,16 +166,34 @@ router.post("/token", async (req, res, next) => {
       return;
     }
 
-    // ここで、DBに保存したリフレッシュトークンと比較して、失効済みでないかチェックするロジックを追加することも可能です（よりセキュア）
-
-    // 5. 新しいアクセストークンを生成
+    // 8. 新しいアクセストークンと新しいリフレッシュトークンを両方生成
     const newAccessToken = jwt.sign(
       { userId: user.id, role: user.role },
       env.JWT_SECRET,
       { expiresIn: env.ACCESS_TOKEN_EXPIRES_IN }
     );
+    const newRefreshToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
+      expiresIn: env.REFRESH_TOKEN_EXPIRES_IN,
+    });
 
-    // 6. 新しいアクセストークンをクライアントに返す
+    // 9. 新しいリフレッシュトークンのハッシュをDBに保存
+    const newHashedToken = createHash("sha256")
+      .update(newRefreshToken)
+      .digest("hex");
+
+    await prisma.refreshToken.create({
+      data: {
+        hashedToken: newHashedToken,
+        userId: user.id,
+      },
+    });
+
+    // 10. 新しいアクセストークンをクライアントに返す
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: env.REFRESH_TOKEN_EXPIRES_IN,
+    });
     res.status(200).json({ accessToken: newAccessToken });
   } catch (error) {
     // jwt.verifyがエラーを投げた場合 (トークンが不正、期限切れなど)
