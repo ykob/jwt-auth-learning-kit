@@ -2,8 +2,8 @@ import bcrypt from "bcryptjs";
 import { createHash } from "crypto";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
-import { env } from "../config"; // configのインポートパスを修正
-import { prisma } from "../prisma"; // prismaのインポートパスを修正
+import { env, jwtPayloadSchema } from "../config";
+import { prisma } from "../prisma";
 
 const router: Router = Router();
 
@@ -150,9 +150,11 @@ router.post("/token", async (req, res, next) => {
 
     // 6. リフレッシュトークンを検証
     // jwt.verifyは、トークンが不正または期限切れの場合にエラーをthrowします
-    const payload = jwt.verify(refreshToken, env.JWT_SECRET) as {
-      userId: string;
-    };
+    const decoded = jwt.verify(refreshToken, env.JWT_SECRET);
+
+    // zodスキーマでペイロードを検証・型付けする
+    // 検証に失敗した場合、zodがエラーを投げるので、自動的にcatchブロックに移行する
+    const payload = jwtPayloadSchema.parse(decoded);
 
     // 7. ペイロードのuserIdを元にユーザーを検索
     const user = await prisma.user.findUnique({
