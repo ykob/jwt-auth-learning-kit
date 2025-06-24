@@ -1,5 +1,6 @@
 // src/index.ts
 
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
@@ -11,8 +12,10 @@ dotenv.config();
 
 const app = express();
 
-// リクエストボディのJSONをパースするためのミドルウェア
+// --- ミドルウェアの設定 ---
+// ここに並べるミドルウェアは、上から順番に実行される
 app.use(express.json());
+app.use(cookieParser());
 
 // サーバーが正常に動作しているか確認するためのヘルスチェック用エンドポイント
 app.get("/health", (_, res) => {
