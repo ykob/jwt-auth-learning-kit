@@ -191,7 +191,7 @@ router.post("/token", async (req, res, next) => {
     });
 
     // 10. 新しいアクセストークンをクライアントに返す
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: env.REFRESH_TOKEN_EXPIRES_IN,
