@@ -11,13 +11,22 @@ export default tseslint.config(
   // TypeScript-ESLintの推奨設定
   ...tseslint.configs.recommended,
 
-  // Prettierとの競合ルールを無効化する設定（必ず最後に置く）
-  prettierConfig,
-
   // プロジェクト固有のルールや設定
   {
-    rules: {},
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn', // 'error'だとエラーに、'warn'だと警告になる
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
+    },
   },
+
+  // Prettierとの競合ルールを無効化する設定（必ず最後に置く）
+  prettierConfig,
 
   // ESLintの対象外にするファイルやディレクトリ
   {
