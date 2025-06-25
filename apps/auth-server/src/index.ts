@@ -1,11 +1,11 @@
 // src/index.ts
 
-import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-import express from "express";
-import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
-import { env } from "./config";
-import authRouter from "./routes/auth.routes";
+import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import express from 'express';
+import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import { env } from './config';
+import authRouter from './routes/auth.routes';
 
 // .env ファイルを読み込む
 dotenv.config();
@@ -18,11 +18,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 // サーバーが正常に動作しているか確認するためのヘルスチェック用エンドポイント
-app.get("/health", (_, res) => {
-  res.status(200).send("Auth Server is healthy!");
+app.get('/health', (_, res) => {
+  res.status(200).send('Auth Server is healthy!');
 });
 
-app.use("/api/auth", authRouter);
+app.use('/api/auth', authRouter);
 
 // --- 中央エラーハンドリングミドルウェア ---
 // Expressでは、4つの引数を持つミドルウェアはエラーハンドラとして扱われる
@@ -33,18 +33,18 @@ app.use((req, res, _) => {
   // jwt.verifyが投げるエラーをここでハンドリング
   if (req instanceof TokenExpiredError) {
     // 有効期限切れのエラー
-    res.status(401).json({ message: "Authentication failed. Token expired." });
+    res.status(401).json({ message: 'Authentication failed. Token expired.' });
     return;
   }
   if (req instanceof JsonWebTokenError) {
     // 署名が不正な場合など、トークン自体が無効なエラー
-    res.status(403).json({ message: "Authentication failed. Invalid token." });
+    res.status(403).json({ message: 'Authentication failed. Invalid token.' });
     return;
   }
 
   // その他の予期せぬエラーはすべて500 Internal Server Error
   // これが最終的なフォールバックとなる
-  res.status(500).json({ message: "Internal Server Error" });
+  res.status(500).json({ message: 'Internal Server Error' });
 });
 
 // サーバーを起動
