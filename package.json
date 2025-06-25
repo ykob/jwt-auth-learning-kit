@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint \"packages/**/*.{js,ts}\"",
-    "lint:fix": "eslint \"packages/**/*.{js,ts}\" --fix",
-    "format": "prettier --write \"packages/**/*.{js,ts,json,md}\""
+    "lint": "eslint \"{apps,packages}/**/*.{js,ts}\"",
+    "lint:fix": "eslint \"{apps,packages}/**/*.{js,ts}\" --fix",
+    "format": "prettier --write \"{apps,packages}/**/*.{js,ts,json,md}\""
   },
   "author": "",
   "license": "ISC",
