@@ -206,4 +206,33 @@ router.post("/token", async (req, res, next) => {
   }
 });
 
+// ログアウト
+router.post("/logout", async (req, res, next) => {
+  try {
+    // 1. リクエストのCookieからリフレッシュトークンを取得
+    const { refreshToken } = req.cookies;
+
+    // 2. トークンがあれば、DBから削除する
+    if (refreshToken) {
+      const hashedToken = createHash("sha256")
+        .update(refreshToken)
+        .digest("hex");
+
+      // ハッシュ化されたトークンをDBから削除
+      await prisma.refreshToken.deleteMany({
+        where: { hashedToken },
+      });
+    }
+
+    // 3. クライアント側のCookieもクリア
+    res.clearCookie("refreshToken");
+
+    // 4. 成功レスポンスを返す
+    res.status(204).send();
+  } catch (error) {
+    // エラーハンドリングミドルウェアにエラーを渡す
+    next(error);
+  }
+});
+
 export default router;
