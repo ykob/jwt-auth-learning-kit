@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   },
   "author": "",
   "license": "ISC",
