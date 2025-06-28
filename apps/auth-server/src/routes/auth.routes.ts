@@ -75,18 +75,14 @@ router.post('/login', async (req, res, next) => {
 
     // 4. JWTを生成
     // アクセストークン（短命）
-    const accessToken = jwt.sign(
-      { userId: user.id, role: user.role }, // ペイロード
-      env.JWT_SECRET!, // 秘密鍵
-      { expiresIn: env.ACCESS_TOKEN_EXPIRES_IN } // 有効期限
-    );
+    const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.ACCESS_TOKEN_SECRET!, {
+      expiresIn: env.ACCESS_TOKEN_EXPIRES_IN,
+    });
 
     // リフレッシュトークン（長命）
-    const refreshToken = jwt.sign(
-      { userId: user.id }, // ペイロード（シンプルでOK）
-      env.JWT_SECRET!, // ※ 本来は別の秘密鍵を使うのがよりセキュア
-      { expiresIn: env.REFRESH_TOKEN_EXPIRES_IN }
-    );
+    const refreshToken = jwt.sign({ userId: user.id }, env.REFRESH_TOKEN_SECRET!, {
+      expiresIn: env.REFRESH_TOKEN_EXPIRES_IN,
+    });
 
     // リフレッシュトークンをハッシュ化
     const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
@@ -149,7 +145,7 @@ router.post('/token', async (req, res, next) => {
 
     // 6. リフレッシュトークンを検証
     // jwt.verifyは、トークンが不正または期限切れの場合にエラーをthrowします
-    const decoded = jwt.verify(refreshToken, env.JWT_SECRET);
+    const decoded = jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET);
 
     // zodスキーマでペイロードを検証・型付けする
     // 検証に失敗した場合、zodがエラーを投げるので、自動的にcatchブロックに移行する
@@ -166,10 +162,10 @@ router.post('/token', async (req, res, next) => {
     }
 
     // 8. 新しいアクセストークンと新しいリフレッシュトークンを両方生成
-    const newAccessToken = jwt.sign({ userId: user.id, role: user.role }, env.JWT_SECRET, {
+    const newAccessToken = jwt.sign({ userId: user.id, role: user.role }, env.ACCESS_TOKEN_SECRET, {
       expiresIn: env.ACCESS_TOKEN_EXPIRES_IN,
     });
-    const newRefreshToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
+    const newRefreshToken = jwt.sign({ userId: user.id }, env.REFRESH_TOKEN_SECRET, {
       expiresIn: env.REFRESH_TOKEN_EXPIRES_IN,
     });
 
