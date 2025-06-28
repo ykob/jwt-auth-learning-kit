@@ -48,14 +48,14 @@ router.post('/register', async (req, res, next) => {
 // ログイン
 router.post('/login', async (req, res, next) => {
   try {
-    // 1. リクエストボディからemailとpasswordを取得
+    // リクエストボディからemailとpasswordを取得
     const { email, password } = req.body;
     if (!email || !password) {
       res.status(400).json({ message: 'Email and password are required' });
       return;
     }
 
-    // 2. emailを元にユーザーを検索
+    // emailを元にユーザーを検索
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -66,14 +66,14 @@ router.post('/login', async (req, res, next) => {
       return;
     }
 
-    // 3. パスワードを照合
+    // パスワードを照合
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       res.status(401).json({ message: 'Email or password incorrect' });
       return;
     }
 
-    // 4. JWTを生成
+    // JWTを生成
     // アクセストークン（短命）
     const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.ACCESS_TOKEN_SECRET!, {
       expiresIn: env.ACCESS_TOKEN_EXPIRES_IN,
@@ -95,7 +95,7 @@ router.post('/login', async (req, res, next) => {
       },
     });
 
-    // 5. トークンをクライアントに返す
+    // トークンをクライアントに返す
     // リフレッシュトークンをHttpOnly Cookieにセット
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true, // JavaScriptからアクセスできないようにする
@@ -115,19 +115,19 @@ router.post('/login', async (req, res, next) => {
 // トークンの再発行
 router.post('/token', async (req, res, next) => {
   try {
-    // 1. リクエストのCookieからリフレッシュトークンを取得
+    // リクエストのCookieからリフレッシュトークンを取得
     const { refreshToken } = req.cookies;
 
-    // 2. リフレッシュトークンが存在しない場合は認証エラー
+    // リフレッシュトークンが存在しない場合は認証エラー
     if (!refreshToken) {
       res.status(401).json({ message: 'Authorization denied. No refresh token.' });
       return;
     }
 
-    // 3. 受け取ったリフレッシュトークンをハッシュ化してDB検索に使う
+    // 受け取ったリフレッシュトークンをハッシュ化してDB検索に使う
     const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
 
-    // 4. DBでハッシュ化されたトークンを検索（失効済みでないかもチェック）
+    // DBでハッシュ化されたトークンを検索（失効済みでないかもチェック）
     const dbToken = await prisma.refreshToken.findUnique({
       where: { hashedToken: hashedToken, revoked: false },
     });
@@ -136,14 +136,14 @@ router.post('/token', async (req, res, next) => {
       throw new Error('Refresh token not found in DB or revoked.');
     }
 
-    // 5. 古いトークンをrevoked=trueに更新
+    // 古いトークンをrevoked=trueに更新
     // これがローテーションの核。一度使ったトークンは無効化する。
     await prisma.refreshToken.update({
       where: { id: dbToken.id },
       data: { revoked: true },
     });
 
-    // 6. リフレッシュトークンを検証
+    // リフレッシュトークンを検証
     // jwt.verifyは、トークンが不正または期限切れの場合にエラーをthrowします
     const decoded = jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET);
 
@@ -151,7 +151,7 @@ router.post('/token', async (req, res, next) => {
     // 検証に失敗した場合、zodがエラーを投げるので、自動的にcatchブロックに移行する
     const payload = jwtPayloadSchema.parse(decoded);
 
-    // 7. ペイロードのuserIdを元にユーザーを検索
+    // ペイロードのuserIdを元にユーザーを検索
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
     });
@@ -161,7 +161,7 @@ router.post('/token', async (req, res, next) => {
       return;
     }
 
-    // 8. 新しいアクセストークンと新しいリフレッシュトークンを両方生成
+    // 新しいアクセストークンと新しいリフレッシュトークンを両方生成
     const newAccessToken = jwt.sign({ userId: user.id, role: user.role }, env.ACCESS_TOKEN_SECRET, {
       expiresIn: env.ACCESS_TOKEN_EXPIRES_IN,
     });
@@ -169,7 +169,7 @@ router.post('/token', async (req, res, next) => {
       expiresIn: env.REFRESH_TOKEN_EXPIRES_IN,
     });
 
-    // 9. 新しいリフレッシュトークンのハッシュをDBに保存
+    // 新しいリフレッシュトークンのハッシュをDBに保存
     const newHashedToken = createHash('sha256').update(newRefreshToken).digest('hex');
 
     await prisma.refreshToken.create({
@@ -179,7 +179,7 @@ router.post('/token', async (req, res, next) => {
       },
     });
 
-    // 10. 新しいアクセストークンをクライアントに返す
+    // 新しいアクセストークンをクライアントに返す
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -199,10 +199,10 @@ router.post('/token', async (req, res, next) => {
 // ログアウト
 router.post('/logout', async (req, res, next) => {
   try {
-    // 1. リクエストのCookieからリフレッシュトークンを取得
+    // リクエストのCookieからリフレッシュトークンを取得
     const { refreshToken } = req.cookies;
 
-    // 2. トークンがあれば、DBから削除する
+    // トークンがあれば、DBから削除する
     if (refreshToken) {
       const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
 
@@ -212,10 +212,10 @@ router.post('/logout', async (req, res, next) => {
       });
     }
 
-    // 3. クライアント側のCookieもクリア
+    // クライアント側のCookieもクリア
     res.clearCookie('refreshToken');
 
-    // 4. 成功レスポンスを返す
+    // 成功レスポンスを返す
     res.status(204).send();
   } catch (error) {
     // エラーハンドリングミドルウェアにエラーを渡す
