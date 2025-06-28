@@ -104,6 +104,7 @@ router.post('/login', async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true, // JavaScriptからアクセスできないようにする
       secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
+      sameSite: 'strict',
       maxAge: env.REFRESH_TOKEN_EXPIRES_IN,
     });
 
@@ -186,6 +187,7 @@ router.post('/token', async (req, res, next) => {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
       maxAge: env.REFRESH_TOKEN_EXPIRES_IN,
     });
     res.status(200).json({ accessToken: newAccessToken });
