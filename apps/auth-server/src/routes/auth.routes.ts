@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { handleLogin, handleLogout, handleRegister, handleToken } from './auth.controller';
+import { handleLogin, handleLogout, handleRegister, handleToken } from './auth.controllers';
 
 const router: Router = Router();
 
