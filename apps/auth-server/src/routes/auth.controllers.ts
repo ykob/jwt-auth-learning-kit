@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { env, jwtPayloadSchema } from '../config';
 import { prisma } from '../prisma';
+import { registerUser } from './auth.services';
 
 // ユーザー登録
 export const handleRegister = async (req: Request, res: Response, next: NextFunction) => {
@@ -16,28 +17,14 @@ export const handleRegister = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
-    // ユーザーが既に存在するか確認
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      res.status(409).json({ message: 'User already exists' });
-      return;
-    }
+    const user = await registerUser(email, password);
 
-    // パスワードをハッシュ化
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // ユーザーをデータベースに作成
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
-    });
-
-    // パスワードはレスポンスに含めない
-    const { password: _, ...userWithoutPassword } = user;
-    res.status(201).json(userWithoutPassword);
+    res.status(201).json(user);
   } catch (error) {
+    // サービスで投げられたエラー（例: User already exists）をキャッチ
+    if (error instanceof Error && error.message === 'User already exists') {
+      return res.status(409).json({ message: error.message });
+    }
     // 予期せぬ例外をエラーハンドリングミドルウェアに渡す
     next(error);
   }
