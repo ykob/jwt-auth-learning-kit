@@ -123,3 +123,13 @@ export const refreshTokens = async (refreshToken: string) => {
   // 8. 新しいトークンペアを返す
   return { accessToken: newAccessToken, refreshToken: newRefreshToken };
 };
+
+export const logoutUser = async (refreshToken: string) => {
+  if (!refreshToken) return;
+
+  const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
+
+  await prisma.refreshToken.deleteMany({
+    where: { hashedToken },
+  });
+};

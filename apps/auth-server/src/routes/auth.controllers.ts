@@ -1,8 +1,6 @@
-import { createHash } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../config';
-import { prisma } from '../prisma';
-import { loginUser, refreshTokens, registerUser } from './auth.services';
+import { loginUser, logoutUser, refreshTokens, registerUser } from './auth.services';
 
 // ユーザー登録
 export const handleRegister = async (req: Request, res: Response, next: NextFunction) => {
@@ -74,8 +72,6 @@ export const handleToken = async (req: Request, res: Response, next: NextFunctio
     });
     res.status(200).json({ accessToken: newTokens.accessToken });
   } catch (error) {
-    // Service層でエラーが発生した場合 (トークンが無効、期限切れなど)
-    // セキュリティのため、クライアント側の無効なCookieをクリアする
     res.clearCookie('refreshToken');
     next(error);
   }
@@ -84,26 +80,12 @@ export const handleToken = async (req: Request, res: Response, next: NextFunctio
 // ログアウト
 export const handleLogout = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // リクエストのCookieからリフレッシュトークンを取得
     const { refreshToken } = req.cookies;
 
-    // トークンがあれば、DBから削除する
-    if (refreshToken) {
-      const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
-
-      // ハッシュ化されたトークンをDBから削除
-      await prisma.refreshToken.deleteMany({
-        where: { hashedToken },
-      });
-    }
-
-    // クライアント側のCookieもクリア
+    logoutUser(refreshToken);
     res.clearCookie('refreshToken');
-
-    // 成功レスポンスを返す
     res.status(204).send();
   } catch (error) {
-    // エラーハンドリングミドルウェアにエラーを渡す
     next(error);
   }
 };
