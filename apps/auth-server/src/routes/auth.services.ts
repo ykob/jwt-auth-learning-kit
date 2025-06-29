@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
 import jwt from 'jsonwebtoken';
-import { env } from '../config';
+import { env, jwtPayloadSchema } from '../config';
 import { prisma } from '../prisma';
 
 export const registerUser = async (email: string, password: string) => {
@@ -68,4 +68,58 @@ export const loginUser = async (email: string, password: string) => {
     accessToken,
     refreshToken,
   };
+};
+
+export const refreshTokens = async (refreshToken: string) => {
+  // 受け取ったリフレッシュトークンをハッシュ化してDB検索に使う
+  const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
+
+  // DBでハッシュ化されたトークンを検索（失効済みでないかもチェック）
+  const dbToken = await prisma.refreshToken.findUnique({
+    where: { hashedToken: hashedToken, revoked: false },
+  });
+
+  if (!dbToken) {
+    // 使用済み、または不正なトークンが使われた可能性がある
+    throw new Error('Refresh token not found or revoked');
+  }
+
+  // 古いトークンを失効させる（トークンローテーション）
+  await prisma.refreshToken.update({
+    where: { id: dbToken.id },
+    data: { revoked: true },
+  });
+
+  // リフレッシュトークンを検証
+  const decoded = jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET);
+  const payload = jwtPayloadSchema.parse(decoded);
+
+  // ペイロードからユーザーを検索
+  const user = await prisma.user.findUnique({
+    where: { id: payload.userId },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // 新しいアクセストークンとリフレッシュトークンを両方生成
+  const newAccessToken = jwt.sign({ userId: user.id, role: user.role }, env.ACCESS_TOKEN_SECRET, {
+    expiresIn: env.ACCESS_TOKEN_EXPIRES_IN,
+  });
+  const newRefreshToken = jwt.sign({ userId: user.id }, env.REFRESH_TOKEN_SECRET, {
+    expiresIn: env.REFRESH_TOKEN_EXPIRES_IN,
+  });
+
+  // 新しいリフレッシュトークンのハッシュをDBに保存
+  const newHashedToken = createHash('sha256').update(newRefreshToken).digest('hex');
+  await prisma.refreshToken.create({
+    data: {
+      hashedToken: newHashedToken,
+      userId: user.id,
+    },
+  });
+
+  // 8. 新しいトークンペアを返す
+  return { accessToken: newAccessToken, refreshToken: newRefreshToken };
 };
