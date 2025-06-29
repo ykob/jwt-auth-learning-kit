@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { env, jwtPayloadSchema } from '../config';
+import { ConflictError, UnauthorizedError } from '../errors/app-error';
 import { prisma } from '../prisma';
 
 export const registerUser = async (email: string, password: string) => {
@@ -9,7 +10,7 @@ export const registerUser = async (email: string, password: string) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
   if (existingUser) {
-    throw new Error('User already exists');
+    throw new ConflictError('User already exists');
   }
 
   // パスワードをハッシュ化
@@ -34,13 +35,13 @@ export const loginUser = async (email: string, password: string) => {
     where: { email },
   });
   if (!user) {
-    throw new Error('User not found');
+    throw new UnauthorizedError('Email or password incorrect');
   }
 
   // パスワードを照合
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    throw new Error('Invalid password');
+    throw new UnauthorizedError('Email or password incorrect');
   }
 
   // JWTを生成

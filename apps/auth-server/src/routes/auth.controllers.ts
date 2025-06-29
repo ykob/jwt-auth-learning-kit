@@ -16,10 +16,6 @@ export const handleRegister = async (req: Request, res: Response, next: NextFunc
 
     res.status(201).json(user);
   } catch (error) {
-    if (error instanceof Error && error.message === 'User already exists') {
-      res.status(409).json({ message: error.message });
-      return;
-    }
     next(error);
   }
 };
@@ -44,13 +40,6 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
     });
     res.status(200).json({ accessToken });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message === 'User not found' || error.message === 'Invalid password')
-    ) {
-      res.status(401).json({ message: 'Email or password incorrect' });
-      return;
-    }
     next(error);
   }
 };
