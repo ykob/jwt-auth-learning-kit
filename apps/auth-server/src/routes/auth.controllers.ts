@@ -1,17 +1,15 @@
-import bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { env, jwtPayloadSchema } from '../config';
 import { prisma } from '../prisma';
-import { registerUser } from './auth.services';
+import { loginUser, registerUser } from './auth.services';
 
 // ユーザー登録
 export const handleRegister = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
 
-    // 簡単なバリデーション
     if (!email || !password) {
       res.status(400).json({ message: 'Email and password are required' });
       return;
@@ -21,11 +19,9 @@ export const handleRegister = async (req: Request, res: Response, next: NextFunc
 
     res.status(201).json(user);
   } catch (error) {
-    // サービスで投げられたエラー（例: User already exists）をキャッチ
     if (error instanceof Error && error.message === 'User already exists') {
       return res.status(409).json({ message: error.message });
     }
-    // 予期せぬ例外をエラーハンドリングミドルウェアに渡す
     next(error);
   }
 };
@@ -33,66 +29,29 @@ export const handleRegister = async (req: Request, res: Response, next: NextFunc
 // ユーザーログイン
 export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // リクエストボディからemailとpasswordを取得
     const { email, password } = req.body;
+
     if (!email || !password) {
       res.status(400).json({ message: 'Email and password are required' });
       return;
     }
 
-    // emailを元にユーザーを検索
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-    if (!user) {
-      // ユーザーが存在しない場合、セキュリティのために「Email or password incorrect」のように
-      // どちらが間違っているか分からないようにメッセージを返すのが一般的
-      res.status(401).json({ message: 'Email or password incorrect' });
-      return;
-    }
+    const { accessToken, refreshToken } = await loginUser(email, password);
 
-    // パスワードを照合
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      res.status(401).json({ message: 'Email or password incorrect' });
-      return;
-    }
-
-    // JWTを生成
-    // アクセストークン（短命）
-    const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.ACCESS_TOKEN_SECRET!, {
-      expiresIn: env.ACCESS_TOKEN_EXPIRES_IN,
-    });
-
-    // リフレッシュトークン（長命）
-    const refreshToken = jwt.sign({ userId: user.id }, env.REFRESH_TOKEN_SECRET!, {
-      expiresIn: env.REFRESH_TOKEN_EXPIRES_IN,
-    });
-
-    // リフレッシュトークンをハッシュ化
-    const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
-
-    // ハッシュ化したトークンをDBに保存
-    await prisma.refreshToken.create({
-      data: {
-        hashedToken: hashedToken,
-        userId: user.id,
-      },
-    });
-
-    // トークンをクライアントに返す
-    // リフレッシュトークンをHttpOnly Cookieにセット
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true, // JavaScriptからアクセスできないようにする
-      secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: env.REFRESH_TOKEN_EXPIRES_IN,
     });
-
-    // アクセストークンをJSONレスポンスで返す
     res.status(200).json({ accessToken });
   } catch (error) {
-    // 予期せぬ例外をエラーハンドリングミドルウェアに渡す
+    if (
+      error instanceof Error &&
+      (error.message === 'User not found' || error.message === 'Invalid password')
+    ) {
+      return res.status(401).json({ message: 'Email or password incorrect' });
+    }
     next(error);
   }
 };
