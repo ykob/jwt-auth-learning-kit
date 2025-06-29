@@ -7,6 +7,7 @@ import { prisma } from '../prisma';
 export const registerUser = async (email: string, password: string) => {
   // ユーザーが既に存在するか確認
   const existingUser = await prisma.user.findUnique({ where: { email } });
+
   if (existingUser) {
     throw new Error('User already exists');
   }

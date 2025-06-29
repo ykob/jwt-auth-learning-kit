@@ -17,7 +17,8 @@ export const handleRegister = async (req: Request, res: Response, next: NextFunc
     res.status(201).json(user);
   } catch (error) {
     if (error instanceof Error && error.message === 'User already exists') {
-      return res.status(409).json({ message: error.message });
+      res.status(409).json({ message: error.message });
+      return;
     }
     next(error);
   }
@@ -47,7 +48,8 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
       error instanceof Error &&
       (error.message === 'User not found' || error.message === 'Invalid password')
     ) {
-      return res.status(401).json({ message: 'Email or password incorrect' });
+      res.status(401).json({ message: 'Email or password incorrect' });
+      return;
     }
     next(error);
   }
@@ -59,7 +61,8 @@ export const handleToken = async (req: Request, res: Response, next: NextFunctio
     const { refreshToken } = req.cookies;
 
     if (!refreshToken) {
-      return res.status(401).json({ message: 'Refresh token not provided' });
+      res.status(401).json({ message: 'Refresh token not provided' });
+      return;
     }
 
     const newTokens = await refreshTokens(refreshToken);
