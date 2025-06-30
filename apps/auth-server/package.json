@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.ts",
+    "build": "rimraf ./dist && tsc",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
