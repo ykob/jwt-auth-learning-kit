@@ -7,6 +7,8 @@
     "dev:auth": "pnpm --filter ./apps/auth-server dev",
     "dev:resource": "pnpm --filter ./apps/resource-server dev",
     "dev": "npm-run-all --parallel dev:*",
+    "docker:build": "docker build -t auth-server:latest -f ./apps/auth-server/Dockerfile .",
+    "docker:run": "docker run -d --rm -p 3001:3001 --env-file ./apps/auth-server/.env --name my-auth-server auth-server:latest",
     "lint": "eslint \"{apps,packages}/**/*.{js,ts}\"",
     "lint:fix": "eslint \"{apps,packages}/**/*.{js,ts}\" --fix",
     "format": "prettier --write \"{apps,packages}/**/*.{js,ts,json,md}\""
