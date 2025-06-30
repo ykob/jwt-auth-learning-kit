@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import { env } from './config';
 import { errorHandler } from './middlewares/error-handler.middleware';
-import authRouter from './routes/auth.routes';
+import authRouter from './routes/auth/auth.routes';
 
 // .env ファイルを読み込む
 dotenv.config();

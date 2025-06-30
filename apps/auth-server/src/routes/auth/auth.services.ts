@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
 import jwt from 'jsonwebtoken';
-import { env, jwtPayloadSchema } from '../config';
-import { ConflictError, UnauthorizedError } from '../errors/app-error';
-import { prisma } from '../prisma';
+import { env, jwtPayloadSchema } from '../../config';
+import { ConflictError, UnauthorizedError } from '../../errors/app-error';
+import { prisma } from '../../prisma';
 
 export const registerUser = async (email: string, password: string) => {
   // ユーザーが既に存在するか確認

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { env } from '../config';
+import { env } from '../../config';
 import { loginUser, logoutUser, refreshTokens, registerUser } from './auth.services';
 
 // ユーザー登録
