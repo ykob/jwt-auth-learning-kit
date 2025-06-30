@@ -1,30 +1,32 @@
+# Dockerfile in apps/auth-server/
+
 # --- Stage 1: ビルドステージ ---
-# ★ 変更点: Node.jsのバージョンを22に変更
+# ここでは、開発用の依存関係も含めて全てをインストールし、アプリケーションをビルドします
 FROM node:22-alpine AS builder
 
-# コンテナ内の作業ディレクトリを設定
 WORKDIR /app
 
-# pnpmをインストール
+# pnpmのインストール
 RUN npm install -g pnpm
 
-# まず、依存関係の解決に必要なファイルだけをコピーする
+# 依存関係の解決に必要なファイルを先にコピー
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# プロジェクト全体の依存関係をインストールする
-RUN pnpm install --frozen-lockfile
-
-# アプリケーションのソースコード全体をコピーする
+# プロジェクト全体のソースコードと設定ファイルをコピー
 COPY . .
 
-# auth-serverアプリケーションのみをビルドする
+# すべての依存関係をインストールし、auth-serverをビルド
+RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @jwt-auth-learning-kit/auth-server build
-
-# Prisma Clientを生成する
 RUN pnpm --filter @jwt-auth-learning-kit/auth-server exec prisma generate
 
+# ★ pnpm deployを使って、本番用のファイル一式を/prodディレクトリに準備する
+# これが今回のキーポイントです！
+RUN pnpm deploy --filter=@jwt-auth-learning-kit/auth-server --prod /prod
+
+
 # --- Stage 2: 本番ステージ ---
-# ★ 変更点: Node.jsのバージョンを22に変更
+# ここでは、ビルドステージで準備した本番用のファイルだけを使って、最小のイメージを作成します
 FROM node:22-alpine AS production
 
 WORKDIR /app
@@ -32,14 +34,12 @@ WORKDIR /app
 # 環境変数を本番モードに設定
 ENV NODE_ENV=production
 
-# ビルドステージから、本番環境で必要なファイルだけをコピーする
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/auth-server/package.json ./apps/auth-server/package.json
-COPY --from=builder /app/apps/auth-server/dist ./apps/auth-server/dist
-COPY --from=builder /app/apps/auth-server/prisma ./apps/auth-server/prisma
+# ビルドステージの/prodディレクトリから、本番用のファイル一式をコピー
+COPY --from=builder /prod .
 
 # アプリケーションがリッスンするポートを公開
 EXPOSE 3001
 
 # コンテナが起動したときに実行されるコマンド
+# pnpm deployは元のディレクトリ構造を保つため、パスの指定が必要
 CMD ["node", "apps/auth-server/dist/index.js"]
