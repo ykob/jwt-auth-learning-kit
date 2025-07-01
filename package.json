@@ -7,6 +7,8 @@
     "dev:auth": "pnpm --filter ./apps/auth-server dev",
     "dev:resource": "pnpm --filter ./apps/resource-server dev",
     "dev": "npm-run-all --parallel dev:*",
+    "generate:auth": "pnpm --filter ./apps/auth-server generate",
+    "migrate:auth": "pnpm --filter ./apps/auth-server migrate",
     "build:auth": "pnpm --filter ./apps/auth-server build",
     "build:resource": "pnpm --filter ./apps/resource-server build",
     "build": "npm-run-all --parallel build:*",

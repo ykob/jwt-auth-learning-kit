@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "rimraf ./dist && tsc",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
