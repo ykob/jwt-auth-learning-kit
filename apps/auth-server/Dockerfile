@@ -19,7 +19,6 @@ COPY . .
 RUN pnpm --filter @jwt-auth-learning-kit/auth-server build
 RUN pnpm --filter @jwt-auth-learning-kit/auth-server exec prisma generate
 
-
 # --- Stage 2: 本番ステージ ---
 # ビルド済みの成果物と本番用の依存関係だけを含む、最小のイメージを作成する
 FROM node:22-alpine AS production
@@ -40,6 +39,7 @@ RUN pnpm install --prod --frozen-lockfile
 # ビルド済みのコードとprismaスキーマをコピー
 COPY --from=builder /app/apps/auth-server/dist ./apps/auth-server/dist
 COPY --from=builder /app/apps/auth-server/prisma ./apps/auth-server/prisma
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3001
 
