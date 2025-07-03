@@ -8,18 +8,16 @@ RUN npm install -g pnpm
 # 依存関係の解決に必要なファイルを先にコピー
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# ★ 変更点: installの前に、まず全てのソースコードをコピーする
-# これにより、pnpmがワークスペースの構造を完全に把握できる
-
 # 開発用も含め、全ての依存関係をインストール
 RUN pnpm install --frozen-lockfile
 
+# 全てのソースコードをコピーする
 COPY . .
 
 # auth-serverをビルド
 # （pnpm-lock.yamlの更新を防ぐため、ビルドの前にインストールを完了させる）
-RUN pnpm --filter @your-project/auth-server build
-RUN pnpm --filter @your-project/auth-server exec prisma generate
+RUN pnpm --filter @jwt-auth-learning-kit/auth-server build
+RUN pnpm --filter @jwt-auth-learning-kit/auth-server exec prisma generate
 
 
 # --- Stage 2: 本番ステージ ---
@@ -30,7 +28,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN npm install -g pnpm
 
-# ★ 変更点: pnpmがワークスペース全体を正しく認識できるよう、
+# pnpmがワークスペース全体を正しく認識できるよう、
 # builderステージから、すべてのpackage.jsonを含むディレクトリ構造をコピーする
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/apps/ ./apps/
@@ -40,7 +38,6 @@ COPY --from=builder /app/apps/ ./apps/
 RUN pnpm install --prod --frozen-lockfile
 
 # ビルド済みのコードとprismaスキーマをコピー
-# この部分は変更なし
 COPY --from=builder /app/apps/auth-server/dist ./apps/auth-server/dist
 COPY --from=builder /app/apps/auth-server/prisma ./apps/auth-server/prisma
 
