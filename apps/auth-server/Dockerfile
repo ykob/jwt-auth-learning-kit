@@ -36,10 +36,9 @@ COPY --from=builder /app/apps/ ./apps/
 # --prodフラグで、本番用の依存関係のみをインストールする
 RUN pnpm install --prod --frozen-lockfile
 
-# ビルド済みのコードとprismaスキーマをコピー
+# ビルド済みのコードをコピー
 COPY --from=builder /app/apps/auth-server/dist ./apps/auth-server/dist
-COPY --from=builder /app/apps/auth-server/prisma ./apps/auth-server/prisma
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/auth-server/generated ./apps/auth-server/dist/generated
 
 EXPOSE 3001
 
