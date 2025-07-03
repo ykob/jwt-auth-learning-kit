@@ -1,45 +1,50 @@
-# Dockerfile in apps/auth-server/
-
 # --- Stage 1: ビルドステージ ---
-# ここでは、開発用の依存関係も含めて全てをインストールし、アプリケーションをビルドします
+# 開発に必要なもの全てを含み、アプリケーションをビルドする
 FROM node:22-alpine AS builder
 
 WORKDIR /app
-
-# pnpmのインストール
 RUN npm install -g pnpm
 
 # 依存関係の解決に必要なファイルを先にコピー
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# プロジェクト全体のソースコードと設定ファイルをコピー
+# ★ 変更点: installの前に、まず全てのソースコードをコピーする
+# これにより、pnpmがワークスペースの構造を完全に把握できる
+
+# 開発用も含め、全ての依存関係をインストール
+RUN pnpm install --frozen-lockfile
+
 COPY . .
 
-# すべての依存関係をインストールし、auth-serverをビルド
-RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @jwt-auth-learning-kit/auth-server build
-RUN pnpm --filter @jwt-auth-learning-kit/auth-server exec prisma generate
-
-# ★ pnpm deployを使って、本番用のファイル一式を/prodディレクトリに準備する
-# これが今回のキーポイントです！
-RUN pnpm deploy --filter=@jwt-auth-learning-kit/auth-server --prod /prod
+# auth-serverをビルド
+# （pnpm-lock.yamlの更新を防ぐため、ビルドの前にインストールを完了させる）
+RUN pnpm --filter @your-project/auth-server build
+RUN pnpm --filter @your-project/auth-server exec prisma generate
 
 
 # --- Stage 2: 本番ステージ ---
-# ここでは、ビルドステージで準備した本番用のファイルだけを使って、最小のイメージを作成します
+# ビルド済みの成果物と本番用の依存関係だけを含む、最小のイメージを作成する
 FROM node:22-alpine AS production
 
 WORKDIR /app
-
-# 環境変数を本番モードに設定
 ENV NODE_ENV=production
+RUN npm install -g pnpm
 
-# ビルドステージの/prodディレクトリから、本番用のファイル一式をコピー
-COPY --from=builder /prod .
+# ★ 変更点: pnpmがワークスペース全体を正しく認識できるよう、
+# builderステージから、すべてのpackage.jsonを含むディレクトリ構造をコピーする
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/apps/ ./apps/
 
-# アプリケーションがリッスンするポートを公開
+# これでpnpmはワークスペース内の全パッケージを認識できる状態になった
+# --prodフラグで、本番用の依存関係のみをインストールする
+RUN pnpm install --prod --frozen-lockfile
+
+# ビルド済みのコードとprismaスキーマをコピー
+# この部分は変更なし
+COPY --from=builder /app/apps/auth-server/dist ./apps/auth-server/dist
+COPY --from=builder /app/apps/auth-server/prisma ./apps/auth-server/prisma
+
 EXPOSE 3001
 
-# コンテナが起動したときに実行されるコマンド
-# pnpm deployは元のディレクトリ構造を保つため、パスの指定が必要
+# CMDのパスは、作業ディレクトリ(/app)からの相対パスなので、このままでOK
 CMD ["node", "apps/auth-server/dist/index.js"]
