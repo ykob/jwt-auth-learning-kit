@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.ts",
+    "dev": "dotenv -e ../../.env -e ./.env -- nodemon src/index.ts",
     "build": "rimraf ./dist && tsc",
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
