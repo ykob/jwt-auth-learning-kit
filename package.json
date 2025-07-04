@@ -7,6 +7,7 @@
     "dev:auth": "pnpm --filter ./apps/auth-server dev",
     "dev:resource": "pnpm --filter ./apps/resource-server dev",
     "dev": "npm-run-all --parallel dev:*",
+    "docker:dev": "docker-compose up -d auth-db",
     "generate:auth": "pnpm --filter ./apps/auth-server generate",
     "migrate:auth": "pnpm --filter ./apps/auth-server migrate",
     "build:auth": "pnpm --filter ./apps/auth-server build",
