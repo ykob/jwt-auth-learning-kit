@@ -8,7 +8,7 @@
     "build": "rimraf ./dist && tsc",
     "generate": "prisma generate",
     "migrate": "dotenv -e ../../.env -e ./.env -- prisma migrate dev",
-    "start": "node dist/index.js",
+    "start": "dotenv -e ../../.env -e ./.env -- node dist/index.js",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
