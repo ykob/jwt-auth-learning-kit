@@ -1,23 +1,9 @@
 {
-  "name": "resource-server",
+  "name": "@jwt-auth-learning-kit/resource-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^6.9.0",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
-  },
-  "devDependencies": {
-    "@types/express": "^5.0.3",
-    "@types/jsonwebtoken": "^9.0.9",
-    "dotenv": "^16.5.0",
-    "prisma": "^6.9.0",
-    "typescript": "^5.8.3"
+    "build": "rimraf ./dist && tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "auth-server",
+  "name": "@jwt-auth-learning-kit/auth-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
