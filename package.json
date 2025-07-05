@@ -2,7 +2,7 @@
   "name": "jwt-auth-learning-kit",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev:auth": "pnpm --filter ./apps/auth-server dev",
     "dev:resource": "pnpm --filter ./apps/resource-server dev",
