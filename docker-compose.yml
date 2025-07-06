@@ -17,8 +17,8 @@ services:
 
   auth-server:
     build:
-      context: . # モノリポのルートをビルドコンテキストにする
-      dockerfile: ./apps/auth-server/Dockerfile # 使用するDockerfileのパス
+      context: .
+      dockerfile: ./apps/auth-server/Dockerfile
     restart: always
     env_file:
       - ./apps/auth-server/.env.docker
