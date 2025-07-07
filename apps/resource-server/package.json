@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "rimraf ./dist && tsc",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+    "dev": "dotenv -e ../../.env -e ./.env -- nodemon src/index.ts"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
