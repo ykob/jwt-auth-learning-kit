@@ -3,9 +3,9 @@
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import express from 'express';
+import authRouter from './api/auth/auth.routes';
 import { env } from './config';
 import { errorHandler } from './middlewares/error-handler.middleware';
-import authRouter from './routes/auth/auth.routes';
 
 // .env ファイルを読み込む
 dotenv.config();
