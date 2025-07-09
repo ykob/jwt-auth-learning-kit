@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../../config';
-import { loginUser, logoutUser, refreshTokens, registerUser } from './auth.services';
+import { loginUser, logoutUser, refreshTokens, registerUser } from './auth.service';
 
 // ユーザー登録
 export const handleRegister = async (req: Request, res: Response, next: NextFunction) => {
