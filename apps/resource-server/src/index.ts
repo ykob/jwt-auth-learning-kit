@@ -1,6 +1,6 @@
 import express from 'express';
+import profileRouter from './api/profiles/profiles.routes';
 import { env } from './config';
-import { protect } from './middleware/auth.middleware';
 
 const app = express();
 
@@ -10,13 +10,7 @@ app.get('/api/public', (_, res) => {
   res.json({ message: 'This is a public endpoint.' });
 });
 
-app.get('/api/private/profile', protect, (req, res) => {
-  const user = req.user;
-  res.json({
-    message: `Welcome, user ${user?.userId}! This is a protected endpoint.`,
-    user,
-  });
-});
+app.use('/api/profile', profileRouter);
 
 app.listen(env.PORT, () => {
   console.log(`Resource Server is running on port ${env.PORT}`);
