@@ -78,9 +78,6 @@ importers:
       prisma:
         specifier: ^6.9.0
         version: 6.9.0(typescript@5.8.3)
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
 
   apps/resource-server:
     dependencies:
