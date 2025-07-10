@@ -1,0 +1,26 @@
+# .dockerignore
+
+# Gitの履歴
+.git
+.github
+
+# VS Codeの設定
+.vscode
+
+# 依存関係のディレクトリ (コンテナ内でインストールするため不要)
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+
+# ビルド成果物 (コンテナ内で生成するため不要)
+dist
+apps/*/dist
+packages/*/dist
+
+# 環境変数ファイルやログファイル
+.env
+.env.*
+*.log
+
+# pnpmのデバッグログ
+pnpm-debug.log
