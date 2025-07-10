@@ -27,6 +27,16 @@ services:
     depends_on:
       - auth-db
 
+  resource-server:
+    build:
+      context: .
+      dockerfile: ./apps/resource-server/Dockerfile
+    restart: always
+    env_file:
+      - ./apps/resource-server/.env.docker
+    ports:
+      - '4001:4001'
+
 volumes:
   postgres-data:
     driver: local
