@@ -7,6 +7,8 @@ RUN npm install -g pnpm
 
 # 依存関係の解決に必要なファイルを先にコピー
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/auth-server/package.json ./apps/auth-server/
+COPY apps/resource-server/package.json ./apps/resource-server/
 
 # 開発用も含め、全ての依存関係をインストール
 RUN pnpm install --frozen-lockfile
