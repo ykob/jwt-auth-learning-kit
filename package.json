@@ -16,6 +16,7 @@
     "start:auth": "pnpm --filter @jwt-auth-learning-kit/auth-server start",
     "start:resource": "pnpm --filter @jwt-auth-learning-kit/resource-server start",
     "start": "npm-run-all --parallel start:*",
+    "deploy:resource": "pnpm --filter @jwt-auth-learning-kit/resource-server deploy --prod deploy",
     "lint": "eslint \"{apps,packages}/**/*.{js,ts}\"",
     "lint:fix": "eslint \"{apps,packages}/**/*.{js,ts}\" --fix",
     "format": "prettier --write \"{apps,packages}/**/*.{js,ts,json,md}\""
