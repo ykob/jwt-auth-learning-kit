@@ -2,13 +2,14 @@
   "name": "@jwt-auth-learning-kit/auth-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "dotenv -e ../../.env -e ./.env -- nodemon src/index.ts",
     "build": "rimraf ./dist && tsc",
     "generate": "prisma generate",
     "migrate": "dotenv -e ../../.env -e ./.env -- prisma migrate dev",
     "start": "dotenv -e ../../.env -e ./.env -- node dist/index.js",
+    "postinstall": "pnpm dlx prisma generate",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
