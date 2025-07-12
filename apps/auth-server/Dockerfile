@@ -11,7 +11,6 @@ COPY . .
 RUN pnpm config set inject-workspace-packages=true
 RUN pnpm install --frozen-lockfile
 RUN pnpm build:auth
-RUN pnpm generate:auth
 RUN pnpm deploy:auth
 
 # --- Stage 2: 本番ステージ ---
